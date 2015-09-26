@@ -1,0 +1,6 @@
+dataSources {
+  root = ***POINT TO DATA DIRECTORY***
+  flightFile = airplane_2008.csv
+  carrierFile = carriers.csv
+  planeFile = plane-data.csv
+}
