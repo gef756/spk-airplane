@@ -1,8 +1,13 @@
 import com.typesafe.config.{Config, ConfigFactory}
-import org.apache.spark.sql.{DataFrameReader, DataFrame, SQLContext}
-import org.apache.spark.{SparkContext, SparkConf}
+import org.apache.spark.sql.functions.{avg, sqrt}
+import org.apache.spark.sql._
+import org.apache.spark.{SparkConf, SparkContext}
 
 object AirplaneAnalysis {
+  def stdev(col: Column): Column = {
+    sqrt(avg(col * col) - avg(col) * avg(col))
+  }
+
   def main(args: Array[String]) = {
     val config = ConfigFactory.load()
     val creds: Config = config.getConfig("dataSources")
@@ -17,7 +22,8 @@ object AirplaneAnalysis {
 
     val csvReader: DataFrameReader = sql.read
       .format("com.databricks.spark.csv")
-      .options(Map("header" -> "true"))
+      .options(Map("header" -> "true",
+                   "inferSchema" -> "true"))
 
     val flightData: DataFrame = csvReader
       .load(flightFile)
@@ -35,5 +41,10 @@ object AirplaneAnalysis {
     planeData.printSchema()
 
 
+    println("---Analysis of Delays by Month---")
+    val monthlyGB: GroupedData = flightData.groupBy(flightData("Month"))
+    val monthlyDelays: DataFrame = monthlyGB.agg(avg(flightData("ArrDelay")),
+                                                 stdev(flightData("ArrDelay")))
+    monthlyDelays.foreach(println)
   }
 }
