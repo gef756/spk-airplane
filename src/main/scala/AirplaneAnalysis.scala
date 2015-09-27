@@ -45,6 +45,18 @@ object AirplaneAnalysis {
     val monthlyGB: GroupedData = flightData.groupBy(flightData("Month"))
     val monthlyDelays: DataFrame = monthlyGB.agg(avg(flightData("ArrDelay")),
                                                  stdev(flightData("ArrDelay")))
+
     monthlyDelays.foreach(println)
+
+
+    println("---Analysis of Delays by Season---")
+    val flightDataS: DataFrame = flightData.withColumn("Season", (flightData("Month") / 4).cast(types.IntegerType))
+    val seasonalDelay: DataFrame = flightDataS.groupBy(flightDataS("Season"))
+      .agg(avg(flightDataS("ArrDelay")),
+           stdev(flightDataS("ArrDelay")))
+
+    seasonalDelay.foreach(println)
+
+
   }
 }
